@@ -1,0 +1,7 @@
+{
+  "name": "NeuroSathi",
+  "description": "Elderly-friendly cognitive health companion with dynamic brain training games, AI voice assistant, doctor-patient connection, SOS alerts, and multi-language support.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
