@@ -23,11 +23,16 @@ const getEnvVar = (key: string): string => {
   return "";
 };
 
-const rawSupabaseUrl = getEnvVar("VITE_SUPABASE_URL") || "https://jfertcdiencvfprrprha.supabase.co";
+const rawSupabaseUrl =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL) ||
+  getEnvVar("VITE_SUPABASE_URL") ||
+  "https://jfertcdiencvfprrprha.supabase.co";
 const supabaseUrl = rawSupabaseUrl
   .replace(/\/rest\/v1\/?$/, "")
   .replace(/\/+$/, "");
-const supabaseAnonKey = getEnvVar("VITE_SUPABASE_PUBLISHABLE_KEY");
+const supabaseAnonKey =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY) ||
+  getEnvVar("VITE_SUPABASE_PUBLISHABLE_KEY");
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
