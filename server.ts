@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
@@ -8,6 +9,7 @@ import {
   ALL_COGNITIVE_GAMES,
   NEUROSATHI_AGENT_TOOLS,
   serverSupabase,
+  refreshServerSupabase,
   isUuid,
 } from "./server/agent";
 import { resolveResponseLanguage } from "./src/lib/languageRouter";
@@ -19,14 +21,17 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json());
 
-// Lazy-initialized GoogleGenAI client
+// Lazy-initialized GoogleGenAI client with auto-refresh
 let genAI: GoogleGenAI | null = null;
+let currentKey: string | null = null;
 function getGenAI(): GoogleGenAI | null {
+  dotenv.config();
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
     return null;
   }
-  if (!genAI) {
+  if (!genAI || currentKey !== apiKey) {
+    currentKey = apiKey;
     genAI = new GoogleGenAI({ apiKey });
   }
   return genAI;
@@ -34,10 +39,13 @@ function getGenAI(): GoogleGenAI | null {
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
+  dotenv.config();
+  const client = refreshServerSupabase();
+  const apiKey = process.env.GEMINI_API_KEY;
   res.json({
     status: "ok",
-    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
-    supabaseConnected: Boolean(serverSupabase),
+    hasGeminiKey: Boolean(apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey.length > 5),
+    supabaseConnected: Boolean(client),
     timestamp: new Date().toISOString(),
   });
 });

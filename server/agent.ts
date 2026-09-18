@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { FunctionDeclaration } from "@google/genai";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
@@ -9,22 +12,30 @@ import { getLanguageCapability } from "../src/lib/languageCapabilities";
 import { buildTranslationSystemDirective } from "../src/lib/translationService";
 
 // Initialize Supabase client if environment variables are provided (ensuring root URL without trailing /rest/v1 or slashes)
-const rawSupabaseUrl = process.env.VITE_SUPABASE_URL || "https://jfertcdiencvfprrprha.supabase.co";
-const supabaseUrl = (rawSupabaseUrl || "https://jfertcdiencvfprrprha.supabase.co")
-  .replace(/\/rest\/v1\/?$/, "")
-  .replace(/\/+$/, "");
-const supabaseAnonKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+function initServerSupabase(): SupabaseClient | null {
+  dotenv.config();
+  const rawSupabaseUrl = process.env.VITE_SUPABASE_URL || "https://jfertcdiencvfprrprha.supabase.co";
+  const supabaseUrl = (rawSupabaseUrl || "https://jfertcdiencvfprrprha.supabase.co")
+    .replace(/\/rest\/v1\/?$/, "")
+    .replace(/\/+$/, "");
+  const supabaseAnonKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
 
-const isSupabaseConfigured = Boolean(
-  supabaseUrl &&
-  supabaseAnonKey &&
-  !supabaseUrl.includes("xyzcompany") &&
-  supabaseUrl.startsWith("https://")
-);
+  const isConfigured = Boolean(
+    supabaseUrl &&
+    supabaseAnonKey &&
+    !supabaseUrl.includes("xyzcompany") &&
+    supabaseUrl.startsWith("https://")
+  );
 
-export const serverSupabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+  return isConfigured ? createClient(supabaseUrl, supabaseAnonKey) : null;
+}
+
+export let serverSupabase: SupabaseClient | null = initServerSupabase();
+
+export function refreshServerSupabase(): SupabaseClient | null {
+  serverSupabase = initServerSupabase();
+  return serverSupabase;
+}
 
 export const DEFAULT_PATIENT_UUID = "d3b07384-d113-4672-8877-c93d9b0f6991";
 export const DEFAULT_DOCTOR_USER_UUID = "e4c18495-e224-4783-9988-da4e0c1f7002";
